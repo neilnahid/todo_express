@@ -3,5 +3,5 @@ import { asyncHandler } from '../../../utils/asyncHandler';
 
 export default (userService: UserService) =>
   asyncHandler(async () => {
-    await userService.test();
+    if (userService) throw new Error('NOT IMPLEMENTED ERROR');
   });
