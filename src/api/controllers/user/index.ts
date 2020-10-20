@@ -1,52 +1,21 @@
 import { Router } from 'express';
-import { IServices } from '../../../interfaces/IServices';
-import { asyncHandler, asyncParamHandler } from '../../../utils/asyncHandler';
-import { UserRequest } from './types';
-import UserValidationSchema from './validations';
+import UserService from '../../../services/userService';
+import deleteUser from './deleteUser';
+import getUser from './getUser';
+import getUsers from './getUsers';
+import handleUserIDParam from './handleUserIdParam';
+import postUser from './postUser';
+import putUser from './putUser';
 
-export default function makeUserController({ userService }: IServices) {
+export default function makeUserController(userService: UserService) {
   const router = Router();
-  router.param(
-    'user_id',
-    asyncParamHandler(async (req: UserRequest, res, next, id: string) => {
-      req.user = await userService?.getUser(parseInt(id, 10));
-      if (!req.user) {
-        next(new Error('user not found'));
-        return;
-      }
-      next();
-    })
-  );
-  router.route('/:user_id').get((req: UserRequest, res) => {
-    if (req.user) res.json(req.user);
-  });
-
+  router.param('user_id', handleUserIDParam(userService));
   router
-    .route('/')
-    .get(
-      asyncHandler(async (req, res) => {
-        res.json(await userService.getAllUsers());
-      })
-    )
-    .post(
-      asyncHandler(async (req: UserRequest, res, next) => {
-        const { error, value } = UserValidationSchema.createUserSchema.validate(
-          req.body
-        );
-        if (error) {
-          next(error.details[0].message);
-          return;
-        }
-        const user = await userService.createUser(value).catch((err) => {
-          next(new Error(err));
-        });
-        res.json(user);
-      })
-    )
-    .put(
-      asyncHandler(async () => {
-        await userService.test();
-      })
-    );
+    .route('/:user_id')
+    .get(getUser)
+    .put(putUser(userService))
+    .delete(deleteUser(userService));
+
+  router.route('/').get(getUsers(userService)).post(postUser(userService));
   return router;
 }

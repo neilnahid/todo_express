@@ -1,4 +1,4 @@
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient, User, UserCreateInput } from '@prisma/client';
 
 export default class UserService {
   prisma: PrismaClient;
@@ -7,7 +7,7 @@ export default class UserService {
     this.prisma = prisma;
   }
 
-  async createUser(userDTO: User) {
+  async createUser(userDTO: UserCreateInput) {
     const userExists = await this.prisma.user.findOne({
       where: { email: userDTO.email },
     });
@@ -41,8 +41,7 @@ export default class UserService {
     return !!user;
   }
 
-  async test() {
-    if (this) console.log('peye');
-    throw new Error('Invalid Request');
+  async deleteUser(id: number) {
+    this.prisma.user.delete({ where: { id } });
   }
 }
